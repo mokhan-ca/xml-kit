@@ -10,7 +10,7 @@ AllCops:
     - 'vendor/**/*'
   NewCops: disable
   SuggestExtensions: false
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.2
 
 Layout/BlockAlignment:
   EnforcedStyleAlignWith: start_of_line
@@ -85,6 +85,12 @@ Style/GlobalStdStream:
   Enabled: false
 
 Style/KeywordParametersOrder:
+  Enabled: false
+
+Style/MutableConstant:
+  Enabled: false
+
+Style/RedundantFreeze:
   Enabled: false
 
 Style/SlicingWithRange:
