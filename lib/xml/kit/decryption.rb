@@ -35,11 +35,9 @@ module Xml
       # @param hash [Hash] the XML document converted to a [Hash] using Hash.from_xml.
       def decrypt_hash(hash)
         data = hash['EncryptedData']
-        to_plaintext(
-          Base64.decode64(data['CipherData']['CipherValue']),
-          symmetric_key_from(data['KeyInfo']['EncryptedKey']),
-          data['EncryptionMethod']['Algorithm']
-        )
+        with_each_private_key do |private_key|
+          to_plaintext(data, to_plaintext(data['KeyInfo']['EncryptedKey'], private_key))
+        end
       end
 
       # Decrypts an EncryptedData Nokogiri::XML::Element.
@@ -53,26 +51,20 @@ module Xml
 
       private
 
-      def symmetric_key_from(encrypted_key, attempts = private_keys.count)
-        cipher, algorithm = cipher_and_algorithm_from(encrypted_key)
+      def with_each_private_key(attempts = private_keys.count)
         private_keys.each do |private_key|
           attempts -= 1
-          return to_plaintext(cipher, private_key, algorithm)
-        rescue OpenSSL::PKey::RSAError
+          return yield(private_key)
+        rescue OpenSSL::OpenSSLError, ArgumentError
           raise if attempts.zero?
         end
         raise DecryptionError, private_keys
       end
 
-      def to_plaintext(cipher_text, private_key, algorithm)
-        cipher_registry.cipher_for(algorithm, private_key).decrypt(cipher_text)
-      end
-
-      def cipher_and_algorithm_from(encrypted_key)
-        [
-          Base64.decode64(encrypted_key['CipherData']['CipherValue']),
-          encrypted_key['EncryptionMethod']['Algorithm']
-        ]
+      def to_plaintext(element, key)
+        cipher_registry
+          .cipher_for(element['EncryptionMethod']['Algorithm'], key)
+          .decrypt(Base64.decode64(element['CipherData']['CipherValue']))
       end
     end
   end

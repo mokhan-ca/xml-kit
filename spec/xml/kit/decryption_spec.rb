@@ -137,7 +137,7 @@ RSpec.describe Xml::Kit::Decryption do
         }
       end
 
-      specify { expect { subject.decrypt_hash(data) }.to raise_error(OpenSSL::PKey::RSAError) }
+      specify { expect { subject.decrypt_hash(data) }.to raise_error(be_a(OpenSSL::OpenSSLError).or(be_a(ArgumentError))) }
     end
   end
 
