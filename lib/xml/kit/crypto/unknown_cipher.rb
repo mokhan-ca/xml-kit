@@ -15,8 +15,8 @@ module Xml
           @key = key
         end
 
-        def decrypt(cipher_text)
-          cipher_text
+        def decrypt(_cipher_text)
+          raise ::Xml::Kit::Error, "Unknown algorithm: #{algorithm.inspect}"
         end
       end
     end
