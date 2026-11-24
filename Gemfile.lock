@@ -4,7 +4,7 @@ PATH
     xml-kit (0.6.0)
       activemodel (>= 4.2.0)
       builder (~> 3.2)
-      nokogiri (~> 1.10)
+      nokogiri (~> 1.19, >= 1.19.1)
       tilt (>= 1.4.1)
       xmldsig (~> 0.6)
 
