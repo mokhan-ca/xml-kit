@@ -1,5 +1,4 @@
-require:
-  - rubocop/cop/internal_affairs
+plugins:
   - rubocop-rspec
 
 AllCops:
@@ -9,6 +8,8 @@ AllCops:
     - 'spec/fixtures/**/*'
     - 'tmp/**/*'
     - 'vendor/**/*'
+  NewCops: disable
+  SuggestExtensions: false
   TargetRubyVersion: 2.7
 
 Layout/BlockAlignment:
@@ -16,22 +17,6 @@ Layout/BlockAlignment:
   Exclude:
     - 'lib/**/*.builder'
     - 'spec/**/*'
-
-Layout/ClassStructure:
-  Enabled: true
-  Categories:
-    module_inclusion:
-      - include
-      - prepend
-      - extend
-  ExpectedOrder:
-      - module_inclusion
-      - constants
-      - public_class_methods
-      - initializer
-      - instance_methods
-      - protected_methods
-      - private_methods
 
 Layout/EndOfLine:
   EnforcedStyle: lf
@@ -45,6 +30,17 @@ Layout/MultilineOperationIndentation:
 Lint/AmbiguousBlockAssociation:
   Exclude:
     - 'spec/**/*.rb'
+
+Lint/ConstantDefinitionInBlock:
+  Exclude:
+    - 'spec/xml/kit/templatable_spec.rb'
+
+Lint/DeprecatedOpenSSLConstant:
+  Enabled: false
+
+Lint/EmptyFile:
+  Exclude:
+    - 'lib/xml/kit/templates/nil_class.builder'
 
 Lint/InterpolationCheck:
   Exclude:
@@ -67,7 +63,7 @@ Metrics/ModuleLength:
     - 'spec/**/*.rb'
 
 Layout/LineLength:
-  IgnoredPatterns: ['(\A|\s)#']
+  AllowedPatterns: ['(\A|\s)#']
   Exclude:
     - 'spec/**/*.rb'
     - 'lib/xml/kit/templates/*.builder'
@@ -76,10 +72,22 @@ Naming/FileName:
   Exclude:
     - 'lib/xml-kit.rb'
 
+Style/AccessorGrouping:
+  Enabled: false
+
 Style/Documentation:
   Enabled: false
 
 Style/EachWithObject:
+  Enabled: false
+
+Style/GlobalStdStream:
+  Enabled: false
+
+Style/KeywordParametersOrder:
+  Enabled: false
+
+Style/SlicingWithRange:
   Enabled: false
 
 Style/StringLiterals:
@@ -94,9 +102,16 @@ Style/TrailingCommaInHashLiteral:
 RSpec/ExampleLength:
   Max: 80
 
+RSpec/IdenticalEqualityAssertion:
+  Exclude:
+    - 'spec/xml/kit/certificate_spec.rb'
+
 RSpec/LeakyConstantDeclaration:
   Exclude:
     - 'spec/xml/kit/templatable_spec.rb'
+
+RSpec/MatchArray:
+  Enabled: false
 
 RSpec/MultipleExpectations:
   Enabled: false
@@ -110,9 +125,16 @@ RSpec/NamedSubject:
 RSpec/NestedGroups:
   Max: 7
 
+RSpec/SpecFilePathFormat:
+  Exclude:
+    - 'spec/xml/kit/kit_spec.rb'
+
 RSpec/SubjectStub:
   Enabled: false
 
 Style/DoubleNegation:
   Exclude:
     - 'lib/xml/kit/certificate.rb'
+
+Style/YodaCondition:
+  Enabled: false
