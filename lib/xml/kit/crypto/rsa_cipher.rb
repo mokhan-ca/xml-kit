@@ -7,13 +7,13 @@ module Xml
         ALGORITHM = "#{::Xml::Kit::Namespaces::XMLENC}rsa-1_5"
         attr_reader :algorithm, :key
 
+        def self.matches?(algorithm)
+          ALGORITHM == algorithm
+        end
+
         def initialize(algorithm, key)
           @algorithm = algorithm
           @key = key
-        end
-
-        def self.matches?(algorithm)
-          ALGORITHM == algorithm
         end
 
         def encrypt(plain_text)

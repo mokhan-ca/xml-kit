@@ -7,6 +7,22 @@ module Xml
       attr_reader :private_key
       attr_reader :public_key
 
+      # Returns a generated self signed certificate with private key.
+      #
+      # @param use [Symbol] Can be either `:signing` or `:encryption`.
+      # @param passphrase [String] the passphrase to use to encrypt the private key.
+      # @param algorithm [String] the symmetric algorithm to use for encrypting the private key.
+      def self.generate(use:,
+                        passphrase: SecureRandom.uuid,
+                        algorithm: Crypto::SymmetricCipher::DEFAULT_ALGORITHM)
+        algorithm = Crypto::SymmetricCipher::ALGORITHMS[algorithm]
+        certificate, private_key = SelfSignedCertificate.new.create(
+          algorithm: algorithm,
+          passphrase: passphrase
+        )
+        new(certificate, private_key, passphrase, use)
+      end
+
       def initialize(certificate, private_key, passphrase, use)
         @certificate = ::Xml::Kit::Certificate.new(certificate, use: use)
         @private_key =
@@ -23,22 +39,6 @@ module Xml
       # @param use [Symbol] Can be either `:signing` or `:encryption`.
       def for?(use)
         certificate.for?(use)
-      end
-
-      # Returns a generated self signed certificate with private key.
-      #
-      # @param use [Symbol] Can be either `:signing` or `:encryption`.
-      # @param passphrase [String] the passphrase to use to encrypt the private key.
-      # @param algorithm [String] the symmetric algorithm to use for encrypting the private key.
-      def self.generate(use:,
-                        passphrase: SecureRandom.uuid,
-                        algorithm: Crypto::SymmetricCipher::DEFAULT_ALGORITHM)
-        algorithm = Crypto::SymmetricCipher::ALGORITHMS[algorithm]
-        certificate, private_key = SelfSignedCertificate.new.create(
-          algorithm: algorithm,
-          passphrase: passphrase
-        )
-        new(certificate, private_key, passphrase, use)
       end
     end
   end

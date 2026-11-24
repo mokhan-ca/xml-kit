@@ -10,13 +10,13 @@ module Xml
         }.freeze
         attr_reader :algorithm, :key
 
+        def self.matches?(algorithm)
+          ALGORITHMS[algorithm]
+        end
+
         def initialize(algorithm, key)
           @algorithm = algorithm
           @key = key
-        end
-
-        def self.matches?(algorithm)
-          ALGORITHMS[algorithm]
         end
 
         def encrypt(plain_text)

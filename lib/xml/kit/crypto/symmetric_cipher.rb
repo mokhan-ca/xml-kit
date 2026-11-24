@@ -14,14 +14,14 @@ module Xml
 
         attr_reader :algorithm, :key, :padding
 
+        def self.matches?(algorithm)
+          ALGORITHMS[algorithm]
+        end
+
         def initialize(algorithm = DEFAULT_ALGORITHM, key = nil, padding = nil)
           @algorithm = algorithm
           @key = key || cipher.random_key
           @padding = padding
-        end
-
-        def self.matches?(algorithm)
-          ALGORITHMS[algorithm]
         end
 
         def encrypt(plain_text)

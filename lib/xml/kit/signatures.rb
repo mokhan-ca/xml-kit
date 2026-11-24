@@ -7,6 +7,20 @@ module Xml
       attr_reader :key_pair, :signature_method, :digest_method
 
       # @!visibility private
+      def self.sign(xml: ::Builder::XmlMarkup.new,
+                    key_pair:,
+                    signature_method: :SHA256,
+                    digest_method: :SHA256)
+        signatures = new(
+          key_pair: key_pair,
+          signature_method: signature_method,
+          digest_method: digest_method
+        )
+        yield xml, XmlSignatureTemplate.new(xml, signatures)
+        signatures.complete(xml.target!)
+      end
+
+      # @!visibility private
       def initialize(key_pair:, signature_method:, digest_method:)
         @digest_method = digest_method
         @key_pair = key_pair
@@ -36,20 +50,6 @@ module Xml
 
         private_key = key_pair.private_key
         Xmldsig::SignedDocument.new(raw_xml).sign(private_key, false)
-      end
-
-      # @!visibility private
-      def self.sign(xml: ::Builder::XmlMarkup.new,
-                    key_pair:,
-                    signature_method: :SHA256,
-                    digest_method: :SHA256)
-        signatures = new(
-          key_pair: key_pair,
-          signature_method: signature_method,
-          digest_method: digest_method
-        )
-        yield xml, XmlSignatureTemplate.new(xml, signatures)
-        signatures.complete(xml.target!)
       end
 
       class XmlSignatureTemplate # :nodoc:

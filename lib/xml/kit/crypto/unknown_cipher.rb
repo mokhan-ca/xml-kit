@@ -6,13 +6,13 @@ module Xml
       class UnknownCipher
         attr_reader :algorithm, :key
 
+        def self.matches?(_algorithm)
+          true
+        end
+
         def initialize(algorithm, key)
           @algorithm = algorithm
           @key = key
-        end
-
-        def self.matches?(_algorithm)
-          true
         end
 
         def decrypt(cipher_text)
