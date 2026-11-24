@@ -6,7 +6,7 @@ RSpec.describe Xml::Kit::KeyPair do
     certificate.public_key = key.public_key
     certificate.not_before = 1.day.ago
     certificate.not_after = 1.second.ago
-    certificate
+    certificate.sign(key, OpenSSL::Digest.new('SHA256'))
   end
   let(:key) { OpenSSL::PKey::RSA.new(2048) }
   let(:passphrase) { 'secret' }
