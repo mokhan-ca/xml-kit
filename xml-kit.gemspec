@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'A simple toolkit for working with XML.'
   spec.description   = 'A simple toolkit for working with XML.'
-  spec.homepage      = 'https://github.com/xlgmokha/xml-kit'
+  spec.homepage      = 'https://github.com/mokhan-ca/xml-kit'
   spec.license       = 'MIT'
   spec.required_ruby_version = Gem::Requirement.new('>= 3.2.0')
 
@@ -20,6 +20,10 @@ Gem::Specification.new do |spec|
     f.match(%r{^(test|spec|features)/})
   end
   spec.metadata['yard.run'] = 'yri'
+  spec.metadata['allowed_push_host'] = 'https://rubygems.org'
+  spec.metadata['changelog_uri'] = "#{spec.homepage}/blob/main/CHANGELOG.md"
+  spec.metadata['rubygems_mfa_required'] = 'true'
+  spec.metadata['source_code_uri'] = spec.homepage
   spec.bindir        = 'exe'
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
