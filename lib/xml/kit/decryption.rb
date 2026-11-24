@@ -4,6 +4,16 @@ module Xml
   module Kit
     # {include:file:spec/xml/kit/decryption_spec.rb}
     class Decryption
+      ELEMENTS = %w[
+        xenc:EncryptionMethod
+        ds:KeyInfo[not(parent::xenc:EncryptedKey)]
+        xenc:EncryptedKey
+        xenc:CipherData
+        xenc:CipherValue
+      ].join('|').freeze
+      NAMESPACES = { 'ds' => Namespaces::XMLDSIG, 'xenc' => Namespaces::XMLENC }.freeze
+      private_constant :ELEMENTS, :NAMESPACES
+
       # The list of private keys to use to attempt to decrypt the document.
       attr_reader :cipher_registry, :private_keys
 
@@ -27,7 +37,7 @@ module Xml
       #
       # @param raw_xml [String] the XML document as a string.
       def decrypt_xml(raw_xml)
-        decrypt_hash(Hash.from_xml(raw_xml))
+        decrypt_element(Nokogiri::XML(raw_xml, &:strict).root)
       end
 
       # Decrypts an EncryptedData section of an XML document.
@@ -46,10 +56,24 @@ module Xml
       def decrypt_node(node)
         return node unless !node.nil? && node.name == 'EncryptedData'
 
-        node.parent.replace(decrypt_xml(node.to_s))[0]
+        node.parent.replace(decrypt_element(node))[0]
       end
 
       private
+
+      def decrypt_element(element)
+        decrypt_hash(element.name => hash_from(element))
+      end
+
+      def hash_from(element)
+        return element.text if element.name == 'CipherValue'
+
+        children = element.xpath(ELEMENTS, NAMESPACES)
+        raise Error, "#{element.name} contains repeated elements" if children.uniq(&:name).size < children.size
+
+        hash = children.to_h { |child| [child.name, hash_from(child)] }
+        hash.merge('Algorithm' => element['Algorithm']).compact.presence
+      end
 
       def with_each_private_key(attempts = private_keys.count)
         private_keys.each do |private_key|

@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe Xml::Kit::Decryption do
+  let(:key_pair) { Xml::Kit::KeyPair.generate(use: :encryption) }
+  let(:cipher) { Xml::Kit::Crypto::RsaCipher.new(Xml::Kit::Crypto::RsaCipher::ALGORITHM, key_pair.public_key) }
+  let(:xml) { Xml::Kit::EncryptedData.new('<Secret/>', asymmetric_cipher: cipher).to_xml }
+
   describe '#decrypt_hash' do
     let(:secret) { FFaker::Movie.title }
     let(:password) { FFaker::Movie.title }
@@ -138,6 +142,65 @@ RSpec.describe Xml::Kit::Decryption do
       end
 
       specify { expect { subject.decrypt_hash(data) }.to raise_error(be_a(OpenSSL::OpenSSLError).or(be_a(ArgumentError))) }
+    end
+  end
+
+  describe '#decrypt_xml' do
+    subject { described_class.new(private_keys: [key_pair.private_key]) }
+
+    let(:document) { Nokogiri::XML(xml) }
+    let(:script) { File.expand_path('../../fixtures/decrypt_xml.rb', __dir__) }
+
+    it 'needs only the runtime dependencies' do
+      expect(Bundler.with_original_env { IO.popen([RbConfig.ruby, script], &:read) }).to eql('<Secret/>')
+    end
+
+    it 'prefers elements to attributes of the same name' do
+      expect(subject.decrypt_xml(xml.sub('<EncryptedData', '<EncryptedData CipherData="x"'))).to eql('<Secret/>')
+    end
+
+    it 'ignores attributes from other namespaces' do
+      expect(subject.decrypt_xml(xml.gsub(/ Algorithm="[^"]+"/, '\\0 xmlns:x="urn:x" x:Algorithm="x"'))).to eql('<Secret/>')
+    end
+
+    it 'requires an algorithm' do
+      expect { subject.decrypt_xml(xml.sub(/ Algorithm="[^"]+"/, '')) }.to raise_error(NoMethodError)
+    end
+
+    it 'requires strict xml' do
+      expect { subject.decrypt_xml("#{xml}<a/>") }.to raise_error(Nokogiri::XML::SyntaxError)
+    end
+
+    it 'ignores the key info of the encrypted key' do
+      element = document.at_xpath('//*[local-name()="EncryptedKey"]')
+      element.add_child("<KeyInfo xmlns=\"#{Xml::Kit::Namespaces::XMLDSIG}\">#{element}#{element}</KeyInfo>")
+      expect(subject.decrypt_xml(document.to_xml)).to eql('<Secret/>')
+    end
+
+    %w[EncryptionMethod KeyInfo EncryptedKey CipherData CipherValue].each do |name|
+      context "when #{name} is repeated" do
+        let(:element) { document.at_xpath("//*[local-name()='#{name}']") }
+
+        it 'raises' do
+          element.add_next_sibling(element.dup)
+          expect { subject.decrypt_xml(document.to_xml) }.to raise_error(Xml::Kit::Error, /repeated/)
+        end
+
+        it 'ignores other namespaces' do
+          element.add_next_sibling("<#{name} xmlns=\"urn:x\"/>")
+          expect(subject.decrypt_xml(document.to_xml)).to eql('<Secret/>')
+        end
+      end
+    end
+  end
+
+  describe '#decrypt_node' do
+    let(:document) { Nokogiri::XML("<a xmlns:e=\"#{Xml::Kit::Namespaces::XMLENC}\"><b>#{prefixed}</b></a>") }
+    let(:prefixed) { xml.sub(/ xmlns="[^"]+"/, '').gsub(%r{(</?)(Encrypt|Cipher)}, '\\1e:\\2') }
+
+    it 'accepts a namespace declared by an ancestor' do
+      node = document.at_xpath('//e:EncryptedData')
+      expect(described_class.new(private_keys: [key_pair.private_key]).decrypt_node(node).name).to eql('Secret')
     end
   end
 
