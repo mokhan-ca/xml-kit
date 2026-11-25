@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xml-kit (0.6.0)
+    xml-kit (0.7.0)
       activemodel (>= 4.2.0)
       builder (~> 3.2)
       nokogiri (~> 1.19, >= 1.19.1)
